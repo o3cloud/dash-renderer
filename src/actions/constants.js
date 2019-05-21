@@ -9,6 +9,7 @@ const actionList = {
     ON_ERROR: 'ON_ERROR',
     RESOLVE_ERROR: 'RESOLVE_ERROR',
     SET_HOOKS: 'SET_HOOKS',
+    SET_EVENTS: 'SET_EVENTS',
 };
 
 export const getAction = action => {

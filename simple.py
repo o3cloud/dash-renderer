@@ -1,23 +1,31 @@
-from dash import Dash
 import dash
-import dash_html_components as html
 import dash_core_components as dcc
+import dash_html_components as html
 
-app = Dash(__name__)
-app.scripts.config.serve_locally=True
+print(dcc.__version__) # 0.6.0 or above is required
+
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+
 app.layout = html.Div([
-    dcc.Input(id='my-input', value='initial-input'),
-    html.Div(id='my-output')
+    # represents the URL bar, doesn't render anything
+    dcc.Location(id='url', refresh=False),
+
+    dcc.Link('Navigate to "/"', href='/'),
+    html.Br(),
+
+    # content will be rendered in this element
+    html.Div(id='page-content')
 ])
 
 
-@app.callback(
-    dash.dependencies.Output('my-output', 'children'),
-    [dash.dependencies.Input('my-input', 'value')]
-)
-def update(value):
-    return 'Output: {}'.format(value)
-
+@app.callback(dash.dependencies.Output('page-content', 'children'),
+              [dash.dependencies.Input('url', 'pathname')])
+def display_page(pathname):
+    return html.Div([
+        html.H3('You are on page {}'.format(pathname))
+    ])
 
 if __name__ == '__main__':
     app.run_server(debug=True)

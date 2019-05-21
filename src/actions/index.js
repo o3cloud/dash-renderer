@@ -43,6 +43,7 @@ export const readConfig = createAction(getAction('READ_CONFIG'));
 export const setHooks = createAction(getAction('SET_HOOKS'));
 export const onError = createAction(getAction('ON_ERROR'));
 export const resolveError = createAction(getAction('RESOLVE_ERROR'));
+export const setEvents = createAction(getAction('SET_EVENTS'));
 
 export function hydrateInitialOutputs() {
     return function(dispatch, getState) {
@@ -50,6 +51,8 @@ export function hydrateInitialOutputs() {
         dispatch(setAppLifecycle(getAppState('HYDRATED')));
     };
 }
+
+const SystemSignalKey = '__system__';
 
 function triggerDefaultState(dispatch, getState) {
     const {graphs} = getState();
@@ -907,6 +910,14 @@ function updateOutput(
                         }
                     }
                 };
+				if (data[SystemSignalKey]) {
+					// dispatch event
+                    const events = (data[SystemSignalKey].events || []).map(event => {
+                        return { uid: uid(), ...event }
+                    });
+					dispatch(setEvents(events));
+                    delete data[SystemSignalKey];
+                }
                 if (multi) {
                     Object.entries(data.response).forEach(handleResponse);
                 } else {

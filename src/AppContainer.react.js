@@ -6,8 +6,10 @@ import DocumentTitle from './components/core/DocumentTitle.react';
 import Loading from './components/core/Loading.react';
 import Toolbar from './components/core/Toolbar.react';
 import Reloader from './components/core/Reloader.react';
+import EventDispatcher from './components/core/EventDispatcher.react';
 import {setHooks, readConfig} from './actions/index';
 import {type} from 'ramda';
+import { uid } from './utils';
 
 class UnconnectedAppContainer extends React.Component {
     constructor(props) {
@@ -37,6 +39,45 @@ class UnconnectedAppContainer extends React.Component {
                 <DocumentTitle />
                 <Loading />
                 <Reloader />
+                <EventDispatcher />
+                <button
+                    onClick={() => this.props.dispatch({
+                        type: 'SET_EVENTS',
+                        payload: [{
+                            uid: uid(),
+                            type: 'link',
+                            params: {
+                                href: 'page-2',
+                            },
+                        }]
+                    })}
+                >dispatch path</button>
+                <button
+                    onClick={() => this.props.dispatch({
+                        type: 'SET_EVENTS',
+                        payload: [{
+                            uid: uid(),
+                            type: 'link',
+                            params: {
+                                href: 'page-2',
+                                refresh: true,
+                            },
+                        }]
+                    })}
+                >dispatch refresh</button>
+                <button
+                    onClick={() => this.props.dispatch({
+                        type: 'SET_EVENTS',
+                        payload: [{
+                            uid: uid(),
+                            type: 'link',
+                            params: {
+                                href: 'https://www.baidu.com',
+                                crossDomain: true,
+                            },
+                        }]
+                    })}
+                >dispatch refresh</button>
             </React.Fragment>
         );
     }
