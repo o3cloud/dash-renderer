@@ -6,8 +6,10 @@ import DocumentTitle from './components/core/DocumentTitle.react';
 import Loading from './components/core/Loading.react';
 import Toolbar from './components/core/Toolbar.react';
 import Reloader from './components/core/Reloader.react';
+import EventDispatcher from './components/core/EventDispatcher.react';
 import {setHooks, readConfig} from './actions/index';
 import {type} from 'ramda';
+import { uid } from './utils';
 
 class UnconnectedAppContainer extends React.Component {
     constructor(props) {
@@ -38,6 +40,7 @@ class UnconnectedAppContainer extends React.Component {
                 <DocumentTitle />
                 <Loading />
                 <Reloader />
+                <EventDispatcher />
             </React.Fragment>
         );
     }

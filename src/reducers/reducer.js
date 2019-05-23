@@ -9,6 +9,7 @@ import appLifecycle from './appLifecycle';
 import history from './history';
 import error from './error';
 import hooks from './hooks';
+import events from './events';
 import * as API from './api';
 import config from './config';
 
@@ -22,6 +23,7 @@ const reducer = combineReducers({
     history,
     error,
     hooks,
+    events,
     dependenciesRequest: API.dependenciesRequest,
     layoutRequest: API.layoutRequest,
     reloadRequest: API.reloadRequest,
