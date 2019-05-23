@@ -26,7 +26,8 @@ function CustomEvent(event, params) {
 CustomEvent.prototype = window.Event.prototype;
 
 const EventsConstants = {
-  link: 'link',
+    redirect: 'redirect',
+    call: 'call',
 }
 
 /**
@@ -42,21 +43,22 @@ class EventDispatcher extends Component {
 
     dispatchEvent(events) {
         while(events.length > 0) {
-            const { type, params: { href, refresh, crossDomain } } = events.pop();
+            const { type, params } = events.pop();
             this.props.dispatch({
                 type: 'SET_EVENTS',
                 payload: events,
             });
             switch(type) {
-                case EventsConstants.link:
-                    if (crossDomain) {
-                        window.location.href = href;
-                    } else if (refresh) {
-                        window.location.pathname = href;
+                case EventsConstants.redirect:
+                    if (params.external) {
+                        window.location.href = params.url;
                     } else {
-                        window.history.pushState({}, '', href);
+                        window.history.pushState({}, '', params.url);
                         window.dispatchEvent(new CustomEvent('onpushstate'));
                     }
+                    break
+                case EventsConstants.call:
+                    window.customFunctions[params.functionName](params.functionParams);
                     break
                 default:
             }

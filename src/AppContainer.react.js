@@ -40,44 +40,6 @@ class UnconnectedAppContainer extends React.Component {
                 <Loading />
                 <Reloader />
                 <EventDispatcher />
-                <button
-                    onClick={() => this.props.dispatch({
-                        type: 'SET_EVENTS',
-                        payload: [{
-                            uid: uid(),
-                            type: 'link',
-                            params: {
-                                href: 'page-2',
-                            },
-                        }]
-                    })}
-                >dispatch path</button>
-                <button
-                    onClick={() => this.props.dispatch({
-                        type: 'SET_EVENTS',
-                        payload: [{
-                            uid: uid(),
-                            type: 'link',
-                            params: {
-                                href: 'page-2',
-                                refresh: true,
-                            },
-                        }]
-                    })}
-                >dispatch refresh</button>
-                <button
-                    onClick={() => this.props.dispatch({
-                        type: 'SET_EVENTS',
-                        payload: [{
-                            uid: uid(),
-                            type: 'link',
-                            params: {
-                                href: 'https://www.baidu.com',
-                                crossDomain: true,
-                            },
-                        }]
-                    })}
-                >dispatch refresh</button>
             </React.Fragment>
         );
     }

@@ -38059,8 +38059,6 @@ var UnconnectedAppContainer = function (_React$Component) {
     }, {
         key: 'render',
         value: function render() {
-            var _this2 = this;
-
             var config = this.props.config;
 
             if (type(config) === 'Null') {
@@ -38078,63 +38076,7 @@ var UnconnectedAppContainer = function (_React$Component) {
                 React.createElement(DocumentTitle, null),
                 React.createElement(Loading, null),
                 React.createElement(Reloader, null),
-                React.createElement(EventDispatcher, null),
-                React.createElement(
-                    'button',
-                    {
-                        onClick: function onClick() {
-                            return _this2.props.dispatch({
-                                type: 'SET_EVENTS',
-                                payload: [{
-                                    uid: uid(),
-                                    type: 'link',
-                                    params: {
-                                        href: 'page-2'
-                                    }
-                                }]
-                            });
-                        }
-                    },
-                    'dispatch path'
-                ),
-                React.createElement(
-                    'button',
-                    {
-                        onClick: function onClick() {
-                            return _this2.props.dispatch({
-                                type: 'SET_EVENTS',
-                                payload: [{
-                                    uid: uid(),
-                                    type: 'link',
-                                    params: {
-                                        href: 'page-2',
-                                        refresh: true
-                                    }
-                                }]
-                            });
-                        }
-                    },
-                    'dispatch refresh'
-                ),
-                React.createElement(
-                    'button',
-                    {
-                        onClick: function onClick() {
-                            return _this2.props.dispatch({
-                                type: 'SET_EVENTS',
-                                payload: [{
-                                    uid: uid(),
-                                    type: 'link',
-                                    params: {
-                                        href: 'https://www.baidu.com',
-                                        crossDomain: true
-                                    }
-                                }]
-                            });
-                        }
-                    },
-                    'dispatch refresh'
-                )
+                React.createElement(EventDispatcher, null)
             );
         }
     }]);
@@ -39850,7 +39792,8 @@ function CustomEvent(event, params) {
 CustomEvent.prototype = window.Event.prototype;
 
 var EventsConstants = {
-    link: 'link'
+    redirect: 'redirect',
+    call: 'call'
 
     /**
      * EventHandler allows you send event to front-end to trriger
@@ -39876,25 +39819,23 @@ var EventDispatcher = function (_Component) {
             while (events.length > 0) {
                 var _events$pop = events.pop(),
                     type = _events$pop.type,
-                    _events$pop$params = _events$pop.params,
-                    href = _events$pop$params.href,
-                    refresh = _events$pop$params.refresh,
-                    crossDomain = _events$pop$params.crossDomain;
+                    params = _events$pop.params;
 
                 this.props.dispatch({
                     type: 'SET_EVENTS',
                     payload: events
                 });
                 switch (type) {
-                    case EventsConstants.link:
-                        if (crossDomain) {
-                            window.location.href = href;
-                        } else if (refresh) {
-                            window.location.pathname = href;
+                    case EventsConstants.redirect:
+                        if (params.external) {
+                            window.location.href = params.url;
                         } else {
-                            window.history.pushState({}, '', href);
+                            window.history.pushState({}, '', params.url);
                             window.dispatchEvent(new CustomEvent('onpushstate'));
                         }
+                        break;
+                    case EventsConstants.call:
+                        window.customFunctions[params.functionName](params.functionParams);
                         break;
                     default:
                 }

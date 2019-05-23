@@ -13,6 +13,8 @@ app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
 
     dcc.Link('Navigate to "/"', href='/'),
+    html.Button(id='jump'),
+    html.Div(id="dumb", n_clicks=0),
     html.Br(),
 
     # content will be rendered in this element
@@ -25,6 +27,13 @@ app.layout = html.Div([
 def display_page(pathname):
     return html.Div([
         html.H3('You are on page {}'.format(pathname))
+    ])
+
+@app.callback(dash.dependencies.Output('dumb', 'children'),
+              [dash.dependencies.Input('jump', 'n_clicks')])
+def jump(n_clicks):
+    return html.Div([
+        html.H3('You are on page {}'.format('n_clicks'))
     ])
 
 if __name__ == '__main__':
