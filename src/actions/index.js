@@ -44,6 +44,7 @@ export const setHooks = createAction(getAction('SET_HOOKS'));
 export const onError = createAction(getAction('ON_ERROR'));
 export const resolveError = createAction(getAction('RESOLVE_ERROR'));
 export const setEvents = createAction(getAction('SET_EVENTS'));
+export const setDependencies = createAction(getAction('SET_DEPENDENCIES'));
 
 export function hydrateInitialOutputs() {
     return function(dispatch, getState) {

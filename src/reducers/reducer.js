@@ -10,6 +10,7 @@ import history from './history';
 import error from './error';
 import hooks from './hooks';
 import events from './events';
+import dependencies from './dependencies';
 import * as API from './api';
 import config from './config';
 
@@ -24,6 +25,7 @@ const reducer = combineReducers({
     error,
     hooks,
     events,
+    dependencies,
     dependenciesRequest: API.dependenciesRequest,
     layoutRequest: API.layoutRequest,
     reloadRequest: API.reloadRequest,
