@@ -10,6 +10,7 @@ const actionList = {
     RESOLVE_ERROR: 'RESOLVE_ERROR',
     SET_HOOKS: 'SET_HOOKS',
     SET_EVENTS: 'SET_EVENTS',
+    SET_DEPENDENCIES: 'SET_DEPENDENCIES',
 };
 
 export const getAction = action => {

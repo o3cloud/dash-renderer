@@ -9,6 +9,7 @@ import {
     computePaths,
     hydrateInitialOutputs,
     setLayout,
+    setDependencies,
 } from './actions/index';
 import {getDependencies, getLayout} from './actions/api';
 import {getAppState} from './reducers/constants';
@@ -42,6 +43,7 @@ class UnconnectedContainer extends Component {
             layout,
             layoutRequest,
             paths,
+            dependencies,
         } = props;
 
         if (isEmpty(layoutRequest)) {
@@ -56,11 +58,12 @@ class UnconnectedContainer extends Component {
 
         if (isEmpty(dependenciesRequest)) {
             dispatch(getDependencies());
-        } else if (
-            dependenciesRequest.status === STATUS.OK &&
-            isEmpty(graphs)
-        ) {
-            dispatch(computeGraphs(dependenciesRequest.content));
+        } else if (dependenciesRequest.status === STATUS.OK) {
+            if (isEmpty(dependencies)) {
+                dispatch(setDependencies(dependenciesRequest.content));
+            } else if (isEmpty(graphs)) {
+                dispatch(computeGraphs(dependencies));
+            }
         }
 
         if (
@@ -144,6 +147,7 @@ UnconnectedContainer.propTypes = {
     ]),
     dispatch: PropTypes.func,
     dependenciesRequest: PropTypes.object,
+    dependencies: PropTypes.object,
     layoutRequest: PropTypes.object,
     layout: PropTypes.object,
     paths: PropTypes.object,
@@ -157,6 +161,7 @@ const Container = connect(
     state => ({
         appLifecycle: state.appLifecycle,
         dependenciesRequest: state.dependenciesRequest,
+        dependencies: state.dependencies,
         layoutRequest: state.layoutRequest,
         layout: state.layout,
         graphs: state.graphs,
