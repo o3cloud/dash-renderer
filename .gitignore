@@ -21,3 +21,4 @@ simple*
 .idea/
 .vscode
 .mypy_cache/
+.nvimrc
