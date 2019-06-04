@@ -38076,10 +38076,12 @@ var UnconnectedAppContainer = function (_React$Component) {
                     'Loading...'
                 );
             }
+            var show_undo_redo = config.show_undo_redo;
+
             return React.createElement(
                 React.Fragment,
                 null,
-                React.createElement(Toolbar, null),
+                show_undo_redo ? React.createElement(Toolbar, null) : null,
                 React.createElement(APIController, null),
                 React.createElement(DocumentTitle, null),
                 React.createElement(Loading, null),
@@ -38943,30 +38945,20 @@ function redo() {
     };
 }
 
+var UNDO = createAction('UNDO')();
 function undo() {
-    return function (dispatch, getState) {
-        var history = getState().history;
-        dispatch(createAction('UNDO')());
-        var previous = history.past[history.past.length - 1];
-
-        // Update props
-        dispatch(createAction('UNDO_PROP_CHANGE')({
-            itempath: getState().paths[previous.id],
-            props: previous.props
-        }));
-
-        // Notify observers
-        dispatch(notifyObservers({
-            id: previous.id,
-            props: previous.props
-        }));
-    };
+    return undo_revert(UNDO);
 }
 
+var REVERT = createAction('REVERT')();
 function revert() {
+    return undo_revert(REVERT);
+}
+
+function undo_revert(undo_or_revert) {
     return function (dispatch, getState) {
         var history = getState().history;
-        dispatch(createAction('REVERT')());
+        dispatch(undo_or_revert);
         var previous = history.past[history.past.length - 1];
 
         // Update props
