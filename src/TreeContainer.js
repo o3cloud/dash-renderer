@@ -290,7 +290,7 @@ function getLoadingState(layout, requestQueue) {
 
 export const AugmentedTreeContainer = connect(
     state => ({
-        dependencies: state.dependenciesRequest.content,
+        dependencies: state.dependencies,
         requestQueue: state.requestQueue,
         config: state.config
     }),

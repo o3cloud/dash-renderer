@@ -37780,6 +37780,7 @@ var computeGraphs = _index.computeGraphs;
 var computePaths = _index.computePaths;
 var hydrateInitialOutputs = _index.hydrateInitialOutputs;
 var setLayout = _index.setLayout;
+var setDependencies = _index.setDependencies;
 
 var _api = __webpack_require__(/*! ./actions/api */ "./src/actions/api.js");
 
@@ -37839,7 +37840,8 @@ var UnconnectedContainer = function (_Component) {
                 graphs = props.graphs,
                 layout = props.layout,
                 layoutRequest = props.layoutRequest,
-                paths = props.paths;
+                paths = props.paths,
+                dependencies = props.dependencies;
 
 
             if (isEmpty(layoutRequest)) {
@@ -37854,8 +37856,12 @@ var UnconnectedContainer = function (_Component) {
 
             if (isEmpty(dependenciesRequest)) {
                 dispatch(getDependencies());
-            } else if (dependenciesRequest.status === STATUS.OK && isEmpty(graphs)) {
-                dispatch(computeGraphs(dependenciesRequest.content));
+            } else if (dependenciesRequest.status === STATUS.OK) {
+                if (isEmpty(dependencies)) {
+                    dispatch(setDependencies(dependenciesRequest.content));
+                } else if (isNil(graphs)) {
+                    dispatch(computeGraphs(dependencies));
+                }
             }
 
             if (
@@ -37932,6 +37938,7 @@ UnconnectedContainer.propTypes = {
     appLifecycle: PropTypes.oneOf([getAppState('STARTED'), getAppState('HYDRATED')]),
     dispatch: PropTypes.func,
     dependenciesRequest: PropTypes.object,
+    dependencies: PropTypes.object,
     layoutRequest: PropTypes.object,
     layout: PropTypes.object,
     paths: PropTypes.object,
@@ -37946,6 +37953,7 @@ function (state) {
     return {
         appLifecycle: state.appLifecycle,
         dependenciesRequest: state.dependenciesRequest,
+        dependencies: state.dependencies,
         layoutRequest: state.layoutRequest,
         layout: state.layout,
         graphs: state.graphs,
@@ -38564,7 +38572,7 @@ function getLoadingState(layout, requestQueue) {
 
 var AugmentedTreeContainer = exports.AugmentedTreeContainer = connect(function (state) {
     return {
-        dependencies: state.dependenciesRequest.content,
+        dependencies: state.dependencies,
         requestQueue: state.requestQueue,
         config: state.config
     };
@@ -38733,7 +38741,8 @@ var actionList = {
     ON_ERROR: 'ON_ERROR',
     RESOLVE_ERROR: 'RESOLVE_ERROR',
     SET_HOOKS: 'SET_HOOKS',
-    SET_EVENTS: 'SET_EVENTS'
+    SET_EVENTS: 'SET_EVENTS',
+    SET_DEPENDENCIES: 'SET_DEPENDENCIES'
 };
 
 var getAction = exports.getAction = function getAction(action) {
@@ -38758,7 +38767,7 @@ var getAction = exports.getAction = function getAction(action) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.setEvents = exports.resolveError = exports.onError = exports.setHooks = exports.readConfig = exports.setAppLifecycle = exports.setLayout = exports.computePaths = exports.computeGraphs = exports.setRequestQueue = exports.updateProps = undefined;
+exports.setDependencies = exports.setEvents = exports.resolveError = exports.onError = exports.setHooks = exports.readConfig = exports.setAppLifecycle = exports.setLayout = exports.computePaths = exports.computeGraphs = exports.setRequestQueue = exports.updateProps = undefined;
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
@@ -38786,6 +38795,7 @@ var flatten = _ramda.flatten;
 var flip = _ramda.flip;
 var has = _ramda.has;
 var intersection = _ramda.intersection;
+var isNil = _ramda.isNil;
 var isEmpty = _ramda.isEmpty;
 var keys = _ramda.keys;
 var lensPath = _ramda.lensPath;
@@ -38847,6 +38857,7 @@ var setHooks = exports.setHooks = createAction(getAction('SET_HOOKS'));
 var onError = exports.onError = createAction(getAction('ON_ERROR'));
 var resolveError = exports.resolveError = createAction(getAction('RESOLVE_ERROR'));
 var setEvents = exports.setEvents = createAction(getAction('SET_EVENTS'));
+var setDependencies = exports.setDependencies = createAction(getAction('SET_DEPENDENCIES'));
 
 function hydrateInitialOutputs() {
     return function (dispatch, getState) {
@@ -39187,7 +39198,7 @@ function updateOutput(outputIdAndProp, getState, requestUid, dispatch, changedPr
         config = _getState3.config,
         layout = _getState3.layout,
         graphs = _getState3.graphs,
-        dependenciesRequest = _getState3.dependenciesRequest,
+        dependencies = _getState3.dependencies,
         hooks = _getState3.hooks;
 
     var InputGraph = graphs.InputGraph;
@@ -39241,12 +39252,12 @@ function updateOutput(outputIdAndProp, getState, requestUid, dispatch, changedPr
         changedPropIds: changedPropIds
     };
 
-    var _dependenciesRequest$ = dependenciesRequest.content.find(function (dependency) {
+    var _dependencies$find = dependencies.find(function (dependency) {
         return dependency.output === outputIdAndProp;
     }),
-        inputs = _dependenciesRequest$.inputs,
-        state = _dependenciesRequest$.state,
-        clientside_function = _dependenciesRequest$.clientside_function;
+        inputs = _dependencies$find.inputs,
+        state = _dependencies$find.state,
+        clientside_function = _dependencies$find.clientside_function;
 
     var validKeys = keys(getState().paths);
 
@@ -39417,20 +39428,33 @@ function updateOutput(outputIdAndProp, getState, requestUid, dispatch, changedPr
          * Check to see if another request has already come back
          * _after_ this one.
          * If so, ignore this request.
+         *
+         * NOTE: we can't get data[SystemSignalKey] here because
+         * the response hasn't jsonfy, so we dont know does this
+         * request has systemSignal, so we disable this judge,
+         * and only use the judge after jsonfy.
+         * to make sure we can handle all systemSignals
          */
-        if (isRejected()) {
+        /* if (isRejected()) {
             updateRequestQueue(true, res.status);
             return;
-        }
+        } */
 
         res.json().then(function handleJson(data) {
+            /**
+             * if the data[SystemSignalKey] is existy
+             * we get a systemSignal from server
+             * so we can't drop this request anyway
+             * for we can handle all systemSignals
+             */
+            var hasSystemSignal = !isNil(data[SystemSignalKey]);
             /*
              * Even if the `res` was received in the correct order,
              * the remainder of the response (res.json()) could happen
              * at different rates causing the parsed responses to
              * get out of order
              */
-            if (isRejected()) {
+            if (!hasSystemSignal && isRejected()) {
                 updateRequestQueue(true, res.status);
                 return;
             }
@@ -39582,12 +39606,19 @@ function updateOutput(outputIdAndProp, getState, requestUid, dispatch, changedPr
                     }
                 }
             };
-            if (data[SystemSignalKey]) {
-                // dispatch event
-                var events = (data[SystemSignalKey].events || []).map(function (event) {
-                    return _extends({ uid: uid() }, event);
-                });
-                dispatch(setEvents(events));
+            if (hasSystemSignal) {
+                var systemSignal = data[SystemSignalKey];
+                if (!isNil(systemSignal.events)) {
+                    // dispatch event
+                    var events = (systemSignal.events || []).map(function (event) {
+                        return _extends({ uid: uid() }, event);
+                    });
+                    dispatch(setEvents(events));
+                }
+                if (!isNil(systemSignal.dependencies) && !isEmpty(systemSignal.dependencies)) {
+                    dispatch(setDependencies(systemSignal.dependencies));
+                    dispatch(computeGraphs(getState().dependencies));
+                }
                 delete data[SystemSignalKey];
             }
             if (multi) {
@@ -42323,6 +42354,40 @@ function getAppState(state) {
 
 /***/ }),
 
+/***/ "./src/reducers/dependencies.js":
+/*!**************************************!*\
+  !*** ./src/reducers/dependencies.js ***!
+  \**************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _constants = __webpack_require__(/*! ../actions/constants */ "./src/actions/constants.js");
+
+var getAction = _constants.getAction;
+
+
+var dependencies = function dependencies() {
+    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+    var action = arguments[1];
+
+    if (action.type === getAction('SET_DEPENDENCIES')) {
+        return action.payload;
+    }
+
+    return state;
+};
+
+exports.default = dependencies;
+
+/***/ }),
+
 /***/ "./src/reducers/dependencyGraph.js":
 /*!*****************************************!*\
   !*** ./src/reducers/dependencyGraph.js ***!
@@ -42351,7 +42416,7 @@ var isMultiOutputProp = _utils.isMultiOutputProp;
 var parseMultipleOutputs = _utils.parseMultipleOutputs;
 
 
-var initialGraph = {};
+var initialGraph = null;
 
 var graphs = function graphs() {
     var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : initialGraph;
@@ -42832,6 +42897,10 @@ var _events = __webpack_require__(/*! ./events */ "./src/reducers/events.js");
 
 var events = _interopRequireDefault(_events).default;
 
+var _dependencies = __webpack_require__(/*! ./dependencies */ "./src/reducers/dependencies.js");
+
+var dependencies = _interopRequireDefault(_dependencies).default;
+
 var _api = __webpack_require__(/*! ./api */ "./src/reducers/api.js");
 
 var API = _interopRequireWildcard(_api);
@@ -42857,6 +42926,7 @@ var reducer = combineReducers({
     error: error,
     hooks: hooks,
     events: events,
+    dependencies: dependencies,
     dependenciesRequest: API.dependenciesRequest,
     layoutRequest: API.layoutRequest,
     reloadRequest: API.reloadRequest,

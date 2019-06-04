@@ -2,7 +2,7 @@ import {type} from 'ramda';
 import {DepGraph} from 'dependency-graph';
 import {isMultiOutputProp, parseMultipleOutputs} from '../utils';
 
-const initialGraph = {};
+const initialGraph = null;
 
 const graphs = (state = initialGraph, action) => {
     switch (action.type) {

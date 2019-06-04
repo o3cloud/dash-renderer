@@ -25,7 +25,9 @@ const schema = {
             // 函数参数
             "functionParams": {}
           }
-        }]
+        }],
+        // 依赖全量替换
+        "dependencies": {},
     }
 }
 

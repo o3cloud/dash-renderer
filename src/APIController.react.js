@@ -61,7 +61,7 @@ class UnconnectedContainer extends Component {
         } else if (dependenciesRequest.status === STATUS.OK) {
             if (isEmpty(dependencies)) {
                 dispatch(setDependencies(dependenciesRequest.content));
-            } else if (isEmpty(graphs)) {
+            } else if (isNil(graphs)) {
                 dispatch(computeGraphs(dependencies));
             }
         }

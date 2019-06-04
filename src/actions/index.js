@@ -12,6 +12,7 @@ import {
     flip,
     has,
     intersection,
+    isNil,
     isEmpty,
     keys,
     lensPath,
@@ -411,7 +412,7 @@ function updateOutput(
     dispatch,
     changedPropIds
 ) {
-    const {config, layout, graphs, dependenciesRequest, hooks} = getState();
+    const {config, layout, graphs, dependencies, hooks} = getState();
     const {InputGraph} = graphs;
 
     const getThisRequestIndex = () => {
@@ -472,7 +473,7 @@ function updateOutput(
         inputs,
         state,
         clientside_function,
-    } = dependenciesRequest.content.find(
+    } = dependencies.find(
         dependency => dependency.output === outputIdAndProp
     );
     const validKeys = keys(getState().paths);
@@ -696,20 +697,33 @@ function updateOutput(
              * Check to see if another request has already come back
              * _after_ this one.
              * If so, ignore this request.
+             *
+             * NOTE: we can't get data[SystemSignalKey] here because
+             * the response hasn't jsonfy, so we dont know does this
+             * request has systemSignal, so we disable this judge,
+             * and only use the judge after jsonfy.
+             * to make sure we can handle all systemSignals
              */
-            if (isRejected()) {
+            /* if (isRejected()) {
                 updateRequestQueue(true, res.status);
                 return;
-            }
+            } */
 
             res.json().then(function handleJson(data) {
+                /**
+                 * if the data[SystemSignalKey] is existy
+                 * we get a systemSignal from server
+                 * so we can't drop this request anyway
+                 * for we can handle all systemSignals
+                 */
+                const hasSystemSignal = !isNil(data[SystemSignalKey]);
                 /*
                  * Even if the `res` was received in the correct order,
                  * the remainder of the response (res.json()) could happen
                  * at different rates causing the parsed responses to
                  * get out of order
                  */
-                if (isRejected()) {
+                if (!hasSystemSignal && isRejected()) {
                     updateRequestQueue(true, res.status);
                     return;
                 }
@@ -911,12 +925,19 @@ function updateOutput(
                         }
                     }
                 };
-				if (data[SystemSignalKey]) {
-					// dispatch event
-                    const events = (data[SystemSignalKey].events || []).map(event => {
-                        return { uid: uid(), ...event }
-                    });
-					dispatch(setEvents(events));
+				if (hasSystemSignal) {
+                    const systemSignal = data[SystemSignalKey];
+                    if (!isNil(systemSignal.events)) {
+                        // dispatch event
+                        const events = (systemSignal.events || []).map(event => {
+                            return { uid: uid(), ...event }
+                        });
+                        dispatch(setEvents(events));
+                    }
+                    if (!isNil(systemSignal.dependencies) && !isEmpty(systemSignal.dependencies)) {
+                        dispatch(setDependencies(systemSignal.dependencies));
+                        dispatch(computeGraphs(getState().dependencies));
+                    }
                     delete data[SystemSignalKey];
                 }
                 if (multi) {
