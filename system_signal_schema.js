@@ -27,7 +27,7 @@ const schema = {
           }
         }],
         // 全量替换依赖
-        "dependencies": {},
+        "dependencies": [],
     }
 }
 
