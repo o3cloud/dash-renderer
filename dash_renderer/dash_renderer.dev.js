@@ -38744,7 +38744,9 @@ var actionList = {
     RESOLVE_ERROR: 'RESOLVE_ERROR',
     SET_HOOKS: 'SET_HOOKS',
     SET_EVENTS: 'SET_EVENTS',
-    SET_DEPENDENCIES: 'SET_DEPENDENCIES'
+    SET_DEPENDENCIES: 'SET_DEPENDENCIES',
+    MERGE_DEPENDENCIES: 'MERGE_DEPENDENCIES',
+    REMOVE_DEPENDENCIES: 'REMOVE_DEPENDENCIES'
 };
 
 var getAction = exports.getAction = function getAction(action) {
@@ -38769,7 +38771,7 @@ var getAction = exports.getAction = function getAction(action) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.setDependencies = exports.setEvents = exports.resolveError = exports.onError = exports.setHooks = exports.readConfig = exports.setAppLifecycle = exports.setLayout = exports.computePaths = exports.computeGraphs = exports.setRequestQueue = exports.updateProps = undefined;
+exports.mergeDependencies = exports.removeDependencies = exports.setDependencies = exports.setEvents = exports.resolveError = exports.onError = exports.setHooks = exports.readConfig = exports.setAppLifecycle = exports.setLayout = exports.computePaths = exports.computeGraphs = exports.setRequestQueue = exports.updateProps = undefined;
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
@@ -38860,6 +38862,8 @@ var onError = exports.onError = createAction(getAction('ON_ERROR'));
 var resolveError = exports.resolveError = createAction(getAction('RESOLVE_ERROR'));
 var setEvents = exports.setEvents = createAction(getAction('SET_EVENTS'));
 var setDependencies = exports.setDependencies = createAction(getAction('SET_DEPENDENCIES'));
+var removeDependencies = exports.removeDependencies = createAction(getAction('REMOVE_DEPENDENCIES'));
+var mergeDependencies = exports.mergeDependencies = createAction(getAction('MERGE_DEPENDENCIES'));
 
 function hydrateInitialOutputs() {
     return function (dispatch, getState) {
@@ -38869,6 +38873,11 @@ function hydrateInitialOutputs() {
 }
 
 var SystemSignalKey = '__system__';
+var UpdateDependenciesConstants = {
+    reset: 'RESET',
+    remove: 'REMOVE',
+    merge: 'MERGE'
+};
 
 function triggerDefaultState(dispatch, getState) {
     var _getState = getState(),
@@ -39608,8 +39617,27 @@ function updateOutput(outputIdAndProp, getState, requestUid, dispatch, changedPr
                     dispatch(setEvents(events));
                 }
                 if (!isNil(systemSignal.dependencies) && !isEmpty(systemSignal.dependencies)) {
-                    dispatch(setDependencies(systemSignal.dependencies));
-                    dispatch(computeGraphs(getState().dependencies));
+                    var _systemSignal$depende = systemSignal.dependencies,
+                        action = _systemSignal$depende.action,
+                        content = _systemSignal$depende.content;
+
+                    switch (action) {
+                        case UpdateDependenciesConstants.reset:
+                            dispatch(setDependencies(content));
+                            dispatch(computeGraphs(getState().dependencies));
+                            break;
+                        case UpdateDependenciesConstants.merge:
+                            dispatch(mergeDependencies(content));
+                            dispatch(computeGraphs(getState().dependencies));
+                            break;
+                        case UpdateDependenciesConstants.remove:
+                            dispatch(removeDependencies(content));
+                            dispatch(computeGraphs(getState().dependencies));
+                            break;
+                        default:
+                            /* eslint-disable no-console */
+                            console.error('update dependencies action error');
+                    }
                 }
                 delete data[SystemSignalKey];
             }
@@ -42364,6 +42392,12 @@ var _constants = __webpack_require__(/*! ../actions/constants */ "./src/actions/
 
 var getAction = _constants.getAction;
 
+var _ramda = __webpack_require__(/*! ramda */ "./node_modules/ramda/index.js");
+
+var filter = _ramda.filter;
+var findIndex = _ramda.findIndex;
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 var dependencies = function dependencies() {
     var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
@@ -42371,6 +42405,29 @@ var dependencies = function dependencies() {
 
     if (action.type === getAction('SET_DEPENDENCIES')) {
         return action.payload;
+    }
+
+    if (action.type === getAction('MERGE_DEPENDENCIES')) {
+        var newState = [].concat(_toConsumableArray(state));
+        action.payload.forEach(function (item) {
+            var index = findIndex(function (dependency) {
+                return dependency.output === item.output;
+            }, newState);
+            if (index === -1) {
+                newState.push(item);
+            } else {
+                newState[index] = item;
+            }
+        });
+        return newState;
+    }
+
+    if (action.type === getAction('REMOVE_DEPENDENCIES')) {
+        return filter(function (dependency) {
+            return findIndex(function (item) {
+                return dependency.output === item.output;
+            }, action.payload) === -1;
+        }, state);
     }
 
     return state;
