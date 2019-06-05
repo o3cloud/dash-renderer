@@ -26,8 +26,18 @@ const schema = {
             "functionParams": {}
           }
         }],
-        // 全量替换依赖
-        "dependencies": [],
+        // 动态修改依赖
+        "dependencies": {
+            /**
+             * 操作
+             * MERGE
+             * REMOVE
+             * RESET
+             */
+            "action": "", 
+            // 依赖的内容
+            "content": [],
+        },
     }
 }
 

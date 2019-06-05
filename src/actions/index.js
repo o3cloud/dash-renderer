@@ -46,6 +46,8 @@ export const onError = createAction(getAction('ON_ERROR'));
 export const resolveError = createAction(getAction('RESOLVE_ERROR'));
 export const setEvents = createAction(getAction('SET_EVENTS'));
 export const setDependencies = createAction(getAction('SET_DEPENDENCIES'));
+export const removeDependencies = createAction(getAction('REMOVE_DEPENDENCIES'));
+export const mergeDependencies = createAction(getAction('MERGE_DEPENDENCIES'));
 
 export function hydrateInitialOutputs() {
     return function(dispatch, getState) {
@@ -55,6 +57,11 @@ export function hydrateInitialOutputs() {
 }
 
 const SystemSignalKey = '__system__';
+const UpdateDependenciesConstants = {
+    reset: 'RESET',
+    remove: 'REMOVE',
+    merge: 'MERGE',
+};
 
 function triggerDefaultState(dispatch, getState) {
     const {graphs} = getState();
@@ -915,14 +922,29 @@ function updateOutput(
                     const systemSignal = data[SystemSignalKey];
                     if (!isNil(systemSignal.events)) {
                         // dispatch event
-                        const events = (systemSignal.events || []).map(event => {
-                            return { uid: uid(), ...event }
-                        });
+                        const events = (systemSignal.events || [])
+                            .map(event => ({ uid: uid(), ...event }));
                         dispatch(setEvents(events));
                     }
                     if (!isNil(systemSignal.dependencies) && !isEmpty(systemSignal.dependencies)) {
-                        dispatch(setDependencies(systemSignal.dependencies));
-                        dispatch(computeGraphs(getState().dependencies));
+                        const { action, content } = systemSignal.dependencies;
+                        switch(action) {
+                            case UpdateDependenciesConstants.reset:
+                                dispatch(setDependencies(content));
+                                dispatch(computeGraphs(getState().dependencies));
+                                break;
+                            case UpdateDependenciesConstants.merge:
+                                dispatch(mergeDependencies(content));
+                                dispatch(computeGraphs(getState().dependencies));
+                                break;
+                            case UpdateDependenciesConstants.remove:
+                                dispatch(removeDependencies(content));
+                                dispatch(computeGraphs(getState().dependencies));
+                                break;
+                            default:
+                                /* eslint-disable no-console */
+                                console.error('update dependencies action error');
+                        }
                     }
                     delete data[SystemSignalKey];
                 }
