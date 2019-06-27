@@ -9,7 +9,6 @@ import Reloader from './components/core/Reloader.react';
 import EventDispatcher from './components/core/EventDispatcher.react';
 import {setHooks, readConfig} from './actions/index';
 import {type} from 'ramda';
-import { uid } from './utils';
 
 class UnconnectedAppContainer extends React.Component {
     constructor(props) {

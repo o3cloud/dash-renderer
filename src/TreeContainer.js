@@ -55,7 +55,7 @@ function validateComponent(componentDefinition) {
 const createContainer = (component, path) => isSimpleComponent(component) ?
     component :
     (<AugmentedTreeContainer
-        key={component && component.props && component.props.id}
+        key={component && component.props && component.props.key || component.props.id}
         _dashprivate_layout={component}
         _dashprivate_path={path}
     />);
@@ -103,7 +103,8 @@ class TreeContainer extends Component {
     }
 
     getComponent(_dashprivate_layout, children, loading_state, setProps) {
-        const { _dashprivate_config } = this.props;
+      const { _dashprivate_config, pass_through_props } = this.props;
+
 
         if (isEmpty(_dashprivate_layout)) {
             return null;
@@ -128,7 +129,7 @@ class TreeContainer extends Component {
                     children={children}
                     element={element}
                     props={props}
-                    extraProps={{ loading_state, setProps }}
+                    extraProps={{ loading_state, setProps, pass_through_props }}
                     type={_dashprivate_layout.type}
                 />
             </ComponentErrorBoundary>
@@ -140,7 +141,7 @@ class TreeContainer extends Component {
             >
                 {React.createElement(
                     element,
-                    mergeAll([props, { loading_state, setProps }]),
+                    mergeAll([props, { loading_state, setProps, pass_through_props }]),
                     ...(Array.isArray(children) ? children : [children])
                 )}
             </ComponentErrorBoundary>
@@ -219,6 +220,7 @@ TreeContainer.propTypes = {
     _dashprivate_requestQueue: PropTypes.any,
     _dashprivate_config: PropTypes.object,
     _dashprivate_path: PropTypes.array,
+    pass_through_props: PropTypes.any,
 };
 
 function isLoadingComponent(layout) {
@@ -295,15 +297,19 @@ export const AugmentedTreeContainer = connect(
         config: state.config
     }),
     dispatch => ({dispatch}),
-    (stateProps, dispatchProps, ownProps) => ({
+    (stateProps, dispatchProps, ownProps) => {
+      const {_dashprivate_layout, _dashprivate_path, ...pass_through_props } = ownProps;
+      return {
+        pass_through_props,
+        _dashprivate_layout,
+        _dashprivate_path,
         _dashprivate_dependencies: stateProps.dependencies,
         _dashprivate_dispatch: dispatchProps.dispatch,
-        _dashprivate_layout: ownProps._dashprivate_layout,
-        _dashprivate_path: ownProps._dashprivate_path,
-        _dashprivate_loadingState: getLoadingState(ownProps._dashprivate_layout, stateProps.requestQueue),
+        _dashprivate_loadingState: getLoadingState(_dashprivate_layout, stateProps.requestQueue),
         _dashprivate_requestQueue: stateProps.requestQueue,
         _dashprivate_config: stateProps.config,
-    })
+      }
+    }
 )(TreeContainer);
 
 export default AugmentedTreeContainer;

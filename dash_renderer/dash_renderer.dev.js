@@ -38031,10 +38031,6 @@ var _ramda = __webpack_require__(/*! ramda */ "./node_modules/ramda/index.js");
 
 var type = _ramda.type;
 
-var _utils = __webpack_require__(/*! ./utils */ "./src/utils.js");
-
-var uid = _utils.uid;
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -38298,6 +38294,8 @@ var checkPropTypes = _interopRequireDefault(_checkPropTypes).default;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -38322,7 +38320,7 @@ function validateComponent(componentDefinition) {
 
 var createContainer = function createContainer(component, path) {
     return isSimpleComponent(component) ? component : React.createElement(AugmentedTreeContainer, {
-        key: component && component.props && component.props.id,
+        key: component && component.props && component.props.key || component.props.id,
         _dashprivate_layout: component,
         _dashprivate_path: path
     });
@@ -38376,7 +38374,9 @@ var TreeContainer = function (_Component) {
     }, {
         key: 'getComponent',
         value: function getComponent(_dashprivate_layout, children, loading_state, setProps) {
-            var _dashprivate_config = this.props._dashprivate_config;
+            var _props = this.props,
+                _dashprivate_config = _props._dashprivate_config,
+                pass_through_props = _props.pass_through_props;
 
 
             if (isEmpty(_dashprivate_layout)) {
@@ -38403,7 +38403,7 @@ var TreeContainer = function (_Component) {
                     children: children,
                     element: element,
                     props: props,
-                    extraProps: { loading_state: loading_state, setProps: setProps },
+                    extraProps: { loading_state: loading_state, setProps: setProps, pass_through_props: pass_through_props },
                     type: _dashprivate_layout.type
                 })
             ) : React.createElement(
@@ -38413,7 +38413,7 @@ var TreeContainer = function (_Component) {
                     componentId: _dashprivate_layout.props.id,
                     key: element && element.props && element.props.id
                 },
-                React.createElement.apply(React, [element, mergeAll([props, { loading_state: loading_state, setProps: setProps }])].concat(_toConsumableArray(Array.isArray(children) ? children : [children])))
+                React.createElement.apply(React, [element, mergeAll([props, { loading_state: loading_state, setProps: setProps, pass_through_props: pass_through_props }])].concat(_toConsumableArray(Array.isArray(children) ? children : [children])))
             );
         }
     }, {
@@ -38422,10 +38422,10 @@ var TreeContainer = function (_Component) {
             var _this2 = this;
 
             return function (newProps) {
-                var _props = _this2.props,
-                    _dashprivate_dependencies = _props._dashprivate_dependencies,
-                    _dashprivate_dispatch = _props._dashprivate_dispatch,
-                    _dashprivate_path = _props._dashprivate_path;
+                var _props2 = _this2.props,
+                    _dashprivate_dependencies = _props2._dashprivate_dependencies,
+                    _dashprivate_dispatch = _props2._dashprivate_dispatch,
+                    _dashprivate_path = _props2._dashprivate_path;
 
 
                 var id = _this2.getLayoutProps().id;
@@ -38472,11 +38472,11 @@ var TreeContainer = function (_Component) {
     }, {
         key: 'render',
         value: function render() {
-            var _props2 = this.props,
-                _dashprivate_dispatch = _props2._dashprivate_dispatch,
-                _dashprivate_layout = _props2._dashprivate_layout,
-                _dashprivate_loadingState = _props2._dashprivate_loadingState,
-                _dashprivate_path = _props2._dashprivate_path;
+            var _props3 = this.props,
+                _dashprivate_dispatch = _props3._dashprivate_dispatch,
+                _dashprivate_layout = _props3._dashprivate_layout,
+                _dashprivate_loadingState = _props3._dashprivate_loadingState,
+                _dashprivate_path = _props3._dashprivate_path;
 
 
             var layoutProps = this.getLayoutProps();
@@ -38498,7 +38498,8 @@ TreeContainer.propTypes = {
     _dashprivate_loadingState: PropTypes.object,
     _dashprivate_requestQueue: PropTypes.any,
     _dashprivate_config: PropTypes.object,
-    _dashprivate_path: PropTypes.array
+    _dashprivate_path: PropTypes.array,
+    pass_through_props: PropTypes.any
 };
 
 function isLoadingComponent(layout) {
@@ -38572,7 +38573,7 @@ function getLoadingState(layout, requestQueue) {
     };
 }
 
-var AugmentedTreeContainer = exports.AugmentedTreeContainer = connect(function (state) {
+var AugmentedTreeContainer = connect(function (state) {
     return {
         dependencies: state.dependencies,
         requestQueue: state.requestQueue,
@@ -38581,17 +38582,23 @@ var AugmentedTreeContainer = exports.AugmentedTreeContainer = connect(function (
 }, function (dispatch) {
     return { dispatch: dispatch };
 }, function (stateProps, dispatchProps, ownProps) {
+    var _dashprivate_layout = ownProps._dashprivate_layout,
+        _dashprivate_path = ownProps._dashprivate_path,
+        pass_through_props = _objectWithoutProperties(ownProps, ['_dashprivate_layout', '_dashprivate_path']);
+
     return {
+        pass_through_props: pass_through_props,
+        _dashprivate_layout: _dashprivate_layout,
+        _dashprivate_path: _dashprivate_path,
         _dashprivate_dependencies: stateProps.dependencies,
         _dashprivate_dispatch: dispatchProps.dispatch,
-        _dashprivate_layout: ownProps._dashprivate_layout,
-        _dashprivate_path: ownProps._dashprivate_path,
-        _dashprivate_loadingState: getLoadingState(ownProps._dashprivate_layout, stateProps.requestQueue),
+        _dashprivate_loadingState: getLoadingState(_dashprivate_layout, stateProps.requestQueue),
         _dashprivate_requestQueue: stateProps.requestQueue,
         _dashprivate_config: stateProps.config
     };
 })(TreeContainer);
 
+exports.AugmentedTreeContainer = AugmentedTreeContainer;
 exports.default = AugmentedTreeContainer;
 
 /***/ }),
