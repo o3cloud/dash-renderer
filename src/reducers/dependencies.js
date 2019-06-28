@@ -1,13 +1,15 @@
 import {getAction} from '../actions/constants';
 import { filter, findIndex } from 'ramda';
 
-const dependencies = (state = [], action) => {
+const initialDependencies = null;
+
+const dependencies = (state = initialDependencies, action) => {
     if (action.type === getAction('SET_DEPENDENCIES')) {
         return  action.payload;
     }
 
     if (action.type === getAction('MERGE_DEPENDENCIES')) {
-        const newState = [...state];
+        const newState = state ? [...state] : [];
         action.payload.forEach(item => {
             const index = findIndex(dependency => 
                 dependency.output === item.output,
@@ -27,7 +29,7 @@ const dependencies = (state = [], action) => {
             findIndex(item =>
                 dependency.output === item.output,
                 action.payload
-            ) === -1, state)
+            ) === -1, state || [])
     }
 
     return state;

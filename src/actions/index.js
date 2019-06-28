@@ -65,7 +65,7 @@ const UpdateDependenciesConstants = {
 
 function triggerDefaultState(dispatch, getState) {
     const {graphs} = getState();
-    const {InputGraph, MultiGraph} = graphs;
+    const {InputGraph, MultiGraph} = graphs; 
     const allNodes = InputGraph.overallOrder();
     // overallOrder will assert circular dependencies for multi output.
 

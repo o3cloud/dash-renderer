@@ -37857,7 +37857,7 @@ var UnconnectedContainer = function (_Component) {
             if (isEmpty(dependenciesRequest)) {
                 dispatch(getDependencies());
             } else if (dependenciesRequest.status === STATUS.OK) {
-                if (isEmpty(dependencies)) {
+                if (isNil(dependencies)) {
                     dispatch(setDependencies(dependenciesRequest.content));
                 } else if (isNil(graphs)) {
                     dispatch(computeGraphs(dependencies));
@@ -37866,7 +37866,8 @@ var UnconnectedContainer = function (_Component) {
 
             if (
             // dependenciesRequest and its computed stores
-            dependenciesRequest.status === STATUS.OK && !isEmpty(graphs) &&
+            dependenciesRequest.status === STATUS.OK && !isNil(dependencies) && !isNil(graphs) &&
+
             // LayoutRequest and its computed stores
             layoutRequest.status === STATUS.OK && !isEmpty(layout) && !isNil(paths) &&
             // Hasn't already hydrated
@@ -42406,8 +42407,10 @@ var findIndex = _ramda.findIndex;
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
+var initialDependencies = null;
+
 var dependencies = function dependencies() {
-    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : initialDependencies;
     var action = arguments[1];
 
     if (action.type === getAction('SET_DEPENDENCIES')) {
@@ -42415,7 +42418,7 @@ var dependencies = function dependencies() {
     }
 
     if (action.type === getAction('MERGE_DEPENDENCIES')) {
-        var newState = [].concat(_toConsumableArray(state));
+        var newState = state ? [].concat(_toConsumableArray(state)) : [];
         action.payload.forEach(function (item) {
             var index = findIndex(function (dependency) {
                 return dependency.output === item.output;
@@ -42434,7 +42437,7 @@ var dependencies = function dependencies() {
             return findIndex(function (item) {
                 return dependency.output === item.output;
             }, action.payload) === -1;
-        }, state);
+        }, state || []);
     }
 
     return state;
