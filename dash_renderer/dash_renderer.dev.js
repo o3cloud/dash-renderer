@@ -38321,7 +38321,7 @@ function validateComponent(componentDefinition) {
 
 var createContainer = function createContainer(component, path) {
     return isSimpleComponent(component) ? component : React.createElement(AugmentedTreeContainer, {
-        key: component && component.props && component.props.key || component.props.id,
+        key: component && component.props && (component.props.key || component.props.id),
         _dashprivate_layout: component,
         _dashprivate_path: path
     });
