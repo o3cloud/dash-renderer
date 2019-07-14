@@ -55,7 +55,7 @@ function validateComponent(componentDefinition) {
 const createContainer = (component, path) => isSimpleComponent(component) ?
     component :
     (<AugmentedTreeContainer
-        key={component && component.props && component.props.key || component.props.id}
+        key={component && component.props && (component.props.key || component.props.id)}
         _dashprivate_layout={component}
         _dashprivate_path={path}
     />);
