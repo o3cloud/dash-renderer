@@ -1,4 +1,5 @@
 import {has, type} from 'ramda';
+import {stringify} from 'qs';
 
 /*
  * requests_pathname_prefix is the new config parameter introduced in
@@ -32,6 +33,22 @@ export function urlBase(config) {
             config
         );
     }
+}
+
+export function getEndPoint(config, endpoint) {
+    if (
+      type(config) === 'Null' ||
+      (type(config) === 'Object' &&
+        !has('api_params', config))
+    ) {
+        return endpoint;
+    } else if (
+      has(endpoint, config.api_params)
+    ) {
+        return `${endpoint}?${stringify(config.api_params[endpoint])}`;
+    } 
+        return endpoint;
+    
 }
 
 export function uid() {

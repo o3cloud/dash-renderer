@@ -6,6 +6,19 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 - Undo/redo toolbar is removed by default, unless `config.show_undo_redo=true` is provided. The CSS hack `._dash-undo-redo:{display:none;}` is no longer needed [#175](https://github.com/plotly/dash-renderer/pull/175)
 
+#### Unofficial release
+
+ALL released by O3Cloud and Night Sailer, Repos(https://github.com/o3cloud/dash-renderer)
+
+## [0.25.0] - 2020-02-26 
+
+### Added
+- Add params to API endpoint:
+    - config new key: `boot_params`
+    - API endpoint, `_update_layout` will pass these params to backend
+
+#### Official release
+
 ## [0.24.0] - 2019-05-15
 ### Fixed
 - Fix regression on handling PreventUpdate (204 NO CONTENT) [#170](https://github.com/plotly/dash-renderer/pull/170)

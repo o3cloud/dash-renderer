@@ -19,7 +19,7 @@ import {
     omit,
     pick,
     propOr,
-    type
+    type,
 } from 'ramda';
 import { notifyObservers, updateProps } from './actions';
 import ComponentErrorBoundary from './components/error/ComponentErrorBoundary.react';

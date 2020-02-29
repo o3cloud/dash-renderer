@@ -2,7 +2,7 @@
 import cookie from 'cookie';
 import {merge} from 'ramda';
 import {onError} from '../actions';
-import {urlBase} from '../utils';
+import {urlBase, getEndPoint} from '../utils';
 
 function GET(path) {
     return fetch(path, {
@@ -42,7 +42,7 @@ function apiThunk(endpoint, method, store, id, body, headers = {}) {
             type: store,
             payload: {id, status: 'loading'},
         });
-        return request[method](`${urlBase(config)}${endpoint}`, body, headers)
+        return request[method](`${urlBase(config)}${getEndPoint(config, endpoint)}`, body, headers)
             .then(res => {
                 const contentType = res.headers.get('content-type');
                 if (
